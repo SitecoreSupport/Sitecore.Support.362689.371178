@@ -53,9 +53,19 @@ namespace Sitecore.Support
                 }
             }
 
-            commerceEntity.SetComponent(relationshipsComponent);
-
-            return commerceEntity;
+            // 362689: if entity is cacheable clone entity to ensure it is not concurrently modified by several threads
+            EntityMemoryCachingPolicy entityCachePolicy = EntityMemoryCachingPolicy.GetCachePolicy(context.CommerceContext, commerceEntity.GetType());
+            if (entityCachePolicy != null && entityCachePolicy.AllowCaching)
+            {
+                var clone = commerceEntity.Clone<CommerceEntity>();
+                clone.SetComponent(relationshipsComponent);
+                return clone;
+            }
+            else
+            {
+                commerceEntity.SetComponent(relationshipsComponent);
+                return commerceEntity;
+            }
         }
     }
 }
