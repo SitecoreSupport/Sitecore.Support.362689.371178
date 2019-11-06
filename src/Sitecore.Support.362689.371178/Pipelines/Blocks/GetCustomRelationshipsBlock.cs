@@ -43,7 +43,10 @@ namespace Sitecore.Support
                 Type type = Type.GetType(item.TargetType);
                 string listName = $"{item.Name}-{commerceEntity.FriendlyId}";
 
-                foreach (CommerceEntity item2 in _findEntitiesInListPipeline.Run(new FindEntitiesInListArgument(type, listName, 0, int.MaxValue), context).Result.List.Items)
+                // 371178: non-blocking wait for potentially IO-bound task
+                var result = await _findEntitiesInListPipeline.Run(new FindEntitiesInListArgument(type, listName, 0, int.MaxValue), context);
+
+                foreach (CommerceEntity item2 in result.List.Items)
                 {
                     CatalogItemBase catalogItemBase = item2 as CatalogItemBase;
                     obj.RelationshipList.Add(catalogItemBase.SitecoreId);
